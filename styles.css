@@ -1,0 +1,624 @@
+:root {
+  color-scheme: dark;
+  --ink: #e8f2f8;
+  --muted: #8ca5b4;
+  --line: rgba(149, 178, 194, 0.22);
+  --panel: rgba(12, 20, 30, 0.9);
+  --panel-hi: rgba(25, 37, 51, 0.94);
+  --panel-low: rgba(5, 10, 17, 0.93);
+  --accent: #42c8d5;
+  --accent-2: #8ed464;
+  --warn: #f1b84d;
+  --danger: #ef6c61;
+  --violet: #9a8cff;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.42);
+  font-family: "Segoe UI", "Inter", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #03070d;
+  color: var(--ink);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  border: 1px solid rgba(132, 171, 187, 0.34);
+  background: linear-gradient(180deg, rgba(38, 55, 72, 0.92), rgba(18, 28, 40, 0.96));
+  color: var(--ink);
+  cursor: pointer;
+}
+
+button:hover,
+button.active {
+  border-color: rgba(91, 214, 222, 0.72);
+  color: #ffffff;
+}
+
+button.active {
+  background: linear-gradient(180deg, rgba(37, 103, 117, 0.9), rgba(14, 46, 58, 0.96));
+}
+
+#workstation {
+  position: fixed;
+  inset: 0;
+  min-width: 1360px;
+  min-height: 820px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% -15%, rgba(44, 93, 116, 0.22), transparent 30%),
+    linear-gradient(135deg, #06111c 0%, #05080f 47%, #03060b 100%);
+}
+
+#model-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #060a10;
+}
+
+#map-hud {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 16px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.brand-block,
+.hud-readout,
+.phase-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(132, 171, 187, 0.26);
+  background: rgba(4, 11, 19, 0.72);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+}
+
+.brand-block {
+  height: 44px;
+  padding: 0 14px 0 12px;
+}
+
+.brand-mark {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 18px rgba(66, 200, 213, 0.52), inset 0 0 10px rgba(66, 200, 213, 0.28);
+}
+
+.brand-block strong {
+  display: block;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.brand-block span:last-child {
+  display: block;
+  margin-top: 1px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.phase-strip {
+  height: 36px;
+  padding: 0 8px;
+  pointer-events: auto;
+}
+
+.phase-pill {
+  height: 24px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
+#domain-readout {
+  color: #cce7f0;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+}
+
+.hud-readout {
+  height: 36px;
+  padding: 0 12px;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+  color: #cce7f0;
+}
+
+.app-window {
+  position: absolute;
+  min-width: 220px;
+  min-height: 112px;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(28, 42, 56, 0.95), rgba(9, 15, 24, 0.92)),
+    var(--panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+  pointer-events: auto;
+  overflow: hidden;
+  z-index: 20;
+}
+
+.app-window::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.app-window.is-dragging,
+.app-window.is-resizing {
+  border-color: rgba(66, 200, 213, 0.7);
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.58), 0 0 0 1px rgba(66, 200, 213, 0.18);
+  user-select: none;
+}
+
+.window-titlebar {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px 8px 12px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(40, 56, 72, 0.95), rgba(16, 25, 36, 0.96));
+  cursor: move;
+}
+
+.window-titlebar h2,
+.plot-card h3,
+.plot-head h3 {
+  margin: 0;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+.window-titlebar h2 {
+  font-size: 13px;
+}
+
+.window-kicker {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--accent);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 9px;
+}
+
+.window-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.icon-button {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  line-height: 1;
+}
+
+.window-body {
+  height: calc(100% - 48px);
+  padding: 12px;
+  overflow: auto;
+  scrollbar-color: rgba(89, 131, 151, 0.65) rgba(0, 0, 0, 0.18);
+}
+
+.app-window.is-collapsed {
+  height: 48px !important;
+  min-height: 48px;
+}
+
+.app-window.is-collapsed .window-body,
+.app-window.is-collapsed .resize-handle {
+  display: none;
+}
+
+.resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+}
+
+.resize-handle::before,
+.resize-handle::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 11px;
+  border-bottom: 1px solid rgba(159, 194, 207, 0.58);
+  transform: rotate(-45deg);
+  transform-origin: right bottom;
+}
+
+.resize-handle::after {
+  width: 6px;
+  bottom: 8px;
+}
+
+.setup-body,
+.control-grid,
+.variable-list,
+.view-panel,
+.hazard-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.setup-status,
+.mesh-readout,
+.metric-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  color: var(--muted);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+}
+
+.setup-status span,
+.mesh-readout span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid rgba(132, 171, 187, 0.14);
+  background: rgba(3, 9, 16, 0.44);
+  padding: 6px 8px;
+}
+
+.setup-status strong,
+.mesh-readout strong,
+.metric-row strong,
+.perf-grid strong {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.skewt-shell,
+.plot-card {
+  border: 1px solid rgba(132, 171, 187, 0.18);
+  background: rgba(2, 8, 14, 0.56);
+  padding: 10px;
+}
+
+.plot-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.plot-head h3,
+.plot-card h3 {
+  color: #d7e8ef;
+  font-size: 12px;
+}
+
+.plot-head span {
+  color: var(--muted);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 10px;
+}
+
+#skewt-editor {
+  width: 100%;
+  height: 246px;
+  display: block;
+  border: 1px solid rgba(132, 171, 187, 0.16);
+  background:
+    linear-gradient(180deg, rgba(4, 13, 22, 0.8), rgba(2, 5, 10, 0.88)),
+    #07111c;
+  touch-action: none;
+}
+
+.isotherms line {
+  stroke: rgba(241, 184, 77, 0.22);
+  stroke-width: 1;
+}
+
+.pressure-labels text {
+  fill: rgba(204, 231, 240, 0.54);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 9px;
+}
+
+.profile-line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.temp-line {
+  stroke: var(--danger);
+  filter: drop-shadow(0 0 5px rgba(239, 108, 97, 0.5));
+}
+
+.dew-line {
+  stroke: var(--accent);
+  filter: drop-shadow(0 0 5px rgba(66, 200, 213, 0.5));
+}
+
+.skew-handle {
+  cursor: ew-resize;
+  stroke: #07111c;
+  stroke-width: 2;
+}
+
+.skew-handle.temp {
+  fill: var(--danger);
+}
+
+.skew-handle.dew {
+  fill: var(--accent);
+}
+
+.setup-grid label,
+.control-grid label,
+.timeline-label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.setup-grid label > span,
+.control-grid label > span,
+.timeline-label > span {
+  display: flex;
+  justify-content: space-between;
+  font-family: "Cascadia Mono", Consolas, monospace;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.field-row,
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 6px 8px;
+  border: 1px solid rgba(132, 171, 187, 0.16);
+  background: rgba(7, 15, 24, 0.58);
+  color: #d7e8ef;
+  font-size: 12px;
+}
+
+.field-row.active {
+  border-color: rgba(66, 200, 213, 0.5);
+  background: rgba(66, 200, 213, 0.1);
+}
+
+.field-row input,
+.switch-row input {
+  accent-color: var(--accent);
+}
+
+.button-row,
+.transport,
+.segmented {
+  display: flex;
+  gap: 6px;
+}
+
+.button-row button,
+.transport button,
+.segmented button {
+  min-width: 0;
+  height: 28px;
+  padding: 0 9px;
+  font-size: 11px;
+}
+
+.primary-actions button:first-child {
+  flex: 1;
+  border-color: rgba(142, 212, 100, 0.45);
+  background: linear-gradient(180deg, rgba(62, 92, 45, 0.92), rgba(30, 54, 31, 0.96));
+}
+
+.transport {
+  margin-bottom: 4px;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.mesh-readout {
+  grid-template-columns: 1fr 1fr;
+}
+
+.metric-row {
+  grid-template-columns: 1fr 1fr 1fr;
+  justify-content: space-between;
+}
+
+.metric-row span {
+  display: flex;
+  justify-content: space-between;
+  gap: 7px;
+  border-bottom: 1px solid rgba(132, 171, 187, 0.12);
+  padding-bottom: 3px;
+}
+
+.hazard-score {
+  display: grid;
+  grid-template-columns: 38px 1fr 46px;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+}
+
+meter {
+  width: 100%;
+  height: 11px;
+}
+
+meter::-webkit-meter-bar {
+  background: rgba(3, 9, 16, 0.72);
+  border: 1px solid rgba(132, 171, 187, 0.2);
+}
+
+meter::-webkit-meter-optimum-value {
+  background: linear-gradient(90deg, var(--accent), var(--warn), var(--danger));
+}
+
+.event-log {
+  min-height: 94px;
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  padding: 8px;
+  border: 1px solid rgba(132, 171, 187, 0.14);
+  background: rgba(3, 9, 16, 0.46);
+  color: #cce7f0;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 10px;
+}
+
+.event-log span {
+  display: block;
+  border-bottom: 1px solid rgba(132, 171, 187, 0.1);
+  padding-bottom: 4px;
+}
+
+.bottom-strip {
+  min-width: 640px;
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) 300px;
+  gap: 10px;
+}
+
+.mini-plot {
+  position: relative;
+  height: 104px;
+  border: 1px solid rgba(132, 171, 187, 0.14);
+  background-color: rgba(0, 0, 0, 0.32);
+  overflow: hidden;
+}
+
+.cross-section {
+  background-image:
+    radial-gradient(circle at 60% 35%, rgba(239, 108, 97, 0.34), transparent 21%),
+    linear-gradient(170deg, transparent 0 28%, rgba(241, 184, 77, 0.32) 29% 34%, transparent 35%),
+    linear-gradient(180deg, rgba(66, 200, 213, 0.18), rgba(142, 212, 100, 0.2) 58%, rgba(83, 54, 38, 0.4) 60%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 18px);
+}
+
+.sounding {
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 18px);
+}
+
+#sounding-temp-line,
+#sounding-dew-line {
+  position: absolute;
+  inset: 12px 48px 10px 72px;
+  border-left: 3px solid var(--danger);
+  transform: skewX(-18deg);
+  filter: drop-shadow(0 0 5px rgba(239, 108, 97, 0.45));
+}
+
+#sounding-dew-line {
+  inset: 18px 82px 12px 48px;
+  border-left-color: var(--accent);
+}
+
+#cross-section-marker {
+  position: absolute;
+  left: 55%;
+  top: 18%;
+  width: 10px;
+  height: 72px;
+  border-left: 2px solid rgba(255, 255, 255, 0.72);
+  transform: rotate(-9deg);
+}
+
+#sample-readout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  margin: 0;
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+}
+
+#sample-readout div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid rgba(132, 171, 187, 0.1);
+}
+
+#sample-readout dt {
+  color: var(--muted);
+}
+
+#sample-readout dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+.micro-panel .window-body {
+  display: grid;
+  gap: 8px;
+}
+
+.perf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px 12px;
+  color: var(--muted);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+}
+
+.perf-grid span {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(132, 171, 187, 0.12);
+  padding-bottom: 3px;
+}

@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MesoMaxxed Atmospheric Workstation</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main id="workstation" aria-label="MesoMaxxed desktop weather modeling workspace">
+      <canvas id="model-canvas" aria-label="25 mile by 25 mile by 10 mile atmospheric simulation viewport"></canvas>
+
+      <div id="map-hud" aria-live="polite">
+        <div class="brand-block">
+          <span class="brand-mark"></span>
+          <div>
+            <strong>MesoMaxxed</strong>
+            <span>CM1-style desktop storm simulation console</span>
+          </div>
+        </div>
+        <div class="phase-strip" role="status">
+          <button type="button" class="phase-pill active" data-phase-button="setup">Setup</button>
+          <button type="button" class="phase-pill" data-phase-button="simulation">Simulation</button>
+          <span id="domain-readout">Domain 25 x 25 x 10 mi</span>
+        </div>
+        <div class="hud-readout">
+          <span id="zoom-readout">2D Zoom 1.00x</span>
+          <span id="latlon-readout">X 0.0 mi / Y 0.0 mi</span>
+          <span id="render-readout">WebGL2 initializing</span>
+        </div>
+      </div>
+
+      <article class="app-window setup-window" data-window style="left: 18px; top: 76px; width: 376px; height: 686px;">
+        <header class="window-titlebar">
+          <div>
+            <span class="window-kicker">PHASE 01</span>
+            <h2>Environment Setup</h2>
+          </div>
+          <div class="window-actions">
+            <button type="button" class="icon-button" data-collapse title="Collapse window" aria-label="Collapse window">-</button>
+          </div>
+        </header>
+        <div class="window-body setup-body">
+          <div class="setup-status">
+            <span>Mode <strong id="storm-mode-readout">Classic Supercell</strong></span>
+            <span>Cap <strong id="cap-status-readout">Breakable</strong></span>
+          </div>
+
+          <div class="skewt-shell">
+            <div class="plot-head">
+              <h3>Skew-T Editor</h3>
+              <span id="profile-readout">Surface 27 C / Td 21 C</span>
+            </div>
+            <svg id="skewt-editor" viewBox="0 0 300 246" role="img" aria-label="Editable sounding profile">
+              <defs>
+                <pattern id="skew-grid" width="30" height="24" patternUnits="userSpaceOnUse">
+                  <path d="M 30 0 L 0 0 0 24" fill="none" stroke="rgba(151,188,202,0.16)" stroke-width="1" />
+                </pattern>
+              </defs>
+              <rect x="0" y="0" width="300" height="246" fill="url(#skew-grid)" />
+              <g class="isotherms">
+                <line x1="32" y1="236" x2="118" y2="10" />
+                <line x1="82" y1="236" x2="168" y2="10" />
+                <line x1="132" y1="236" x2="218" y2="10" />
+                <line x1="182" y1="236" x2="268" y2="10" />
+              </g>
+              <g class="pressure-labels">
+                <text x="8" y="226">SFC</text>
+                <text x="8" y="168">700</text>
+                <text x="8" y="108">500</text>
+                <text x="8" y="48">300</text>
+              </g>
+              <polyline id="dew-line" class="profile-line dew-line" points="" />
+              <polyline id="temp-line" class="profile-line temp-line" points="" />
+              <g id="skewt-handles"></g>
+            </svg>
+          </div>
+
+          <div class="control-grid setup-grid">
+            <label>CAPE <span><strong id="cape-value">2800</strong> J/kg</span><input id="cape-input" type="range" min="250" max="5000" value="2800" /></label>
+            <label>CIN <span><strong id="cin-value">50</strong> J/kg</span><input id="cin-input" type="range" min="0" max="250" value="50" /></label>
+            <label>0-6 mi Shear <span><strong id="shear-value">45</strong> kt</span><input id="shear-input" type="range" min="5" max="90" value="45" /></label>
+            <label>0-1 mi SRH <span><strong id="srh-value">210</strong> m2/s2</span><input id="srh-input" type="range" min="0" max="500" value="210" /></label>
+            <label>Low-level Moisture <span><strong id="moisture-value">68</strong>%</span><input id="moisture-input" type="range" min="20" max="95" value="68" /></label>
+            <label>LCL Height <span><strong id="lcl-value">1150</strong> m</span><input id="lcl-input" type="range" min="300" max="2500" value="1150" /></label>
+          </div>
+
+          <div class="button-row primary-actions">
+            <button type="button" id="start-simulation">Start Simulation</button>
+            <button type="button" id="reset-environment">Reset Setup</button>
+          </div>
+        </div>
+        <span class="resize-handle" data-resize></span>
+      </article>
+
+      <article class="app-window" data-window style="left: 414px; top: 76px; width: 286px; height: 354px;">
+        <header class="window-titlebar">
+          <div>
+            <span class="window-kicker">FIELDS</span>
+            <h2>Variable Selection</h2>
+          </div>
+          <div class="window-actions">
+            <button type="button" class="icon-button" data-collapse title="Collapse window" aria-label="Collapse window">-</button>
+          </div>
+        </header>
+        <div class="window-body variable-list">
+          <label class="field-row active"><input type="radio" name="variable" value="reflectivity" checked /> Reflectivity</label>
+          <label class="field-row"><input type="radio" name="variable" value="temperature" /> Temperature</label>
+          <label class="field-row"><input type="radio" name="variable" value="dewpoint" /> Dew Point</label>
+          <label class="field-row"><input type="radio" name="variable" value="wind" /> Wind Speed</label>
+          <label class="field-row"><input type="radio" name="variable" value="cape" /> CAPE</label>
+          <label class="field-row"><input type="radio" name="variable" value="vorticity" /> Vorticity</label>
+          <label class="field-row"><input type="radio" name="variable" value="vertical" /> Vertical Velocity</label>
+          <label class="field-row"><input type="radio" name="variable" value="pressure" /> Pressure Perturbation</label>
+        </div>
+        <span class="resize-handle" data-resize></span>
+      </article>
+
+      <article class="app-window" data-window style="right: 18px; top: 76px; width: 356px; height: 318px;">
+        <header class="window-titlebar">
+          <div>
+            <span class="window-kicker">VIEW</span>
+            <h2>2D and 3D Mesh Views</h2>
+          </div>
+          <div class="window-actions">
+            <button type="button" class="icon-button" data-collapse title="Collapse window" aria-label="Collapse window">-</button>
+          </div>
+        </header>
+        <div class="window-body view-panel">
+          <div class="segmented" role="group" aria-label="View mode">
+            <button type="button" class="active" data-view-mode="split">2D + 3D</button>
+            <button type="button" data-view-mode="plan">2D Mesh</button>
+            <button type="button" data-view-mode="scene">3D Box</button>
+          </div>
+          <div class="mesh-readout">
+            <span>Horizontal <strong>25 mi</strong></span>
+            <span>Vertical <strong>10 mi</strong></span>
+            <span>Grid <strong>100 x 100 x 40</strong></span>
+            <span>Views <strong>Linked</strong></span>
+          </div>
+          <div class="control-grid">
+            <label>Scene Yaw <span><strong id="yaw-value">34</strong> deg</span><input id="yaw-input" type="range" min="-180" max="180" value="34" /></label>
+            <label>Scene Pitch <span><strong id="pitch-value">52</strong> deg</span><input id="pitch-input" type="range" min="20" max="78" value="52" /></label>
+            <label>Scene Range <span><strong id="range-value">1.35</strong>x</span><input id="range-input" type="range" min="85" max="220" value="135" /></label>
+          </div>
+        </div>
+        <span class="resize-handle" data-resize></span>
+      </article>
+
+      <article class="app-window compact" data-window style="right: 18px; top: 412px; width: 356px; height: 284px;">
+        <header class="window-titlebar">
+          <div>
+            <span class="window-kicker">TIME</span>
+            <h2>Fast Evolution Loop</h2>
+          </div>
+          <div class="window-actions">
+            <button type="button" class="icon-button" data-collapse title="Collapse window" aria-label="Collapse window">-</button>
+          </div>
+        </header>
+        <div class="window-body">
+          <div class="transport">
+            <button type="button" id="rewind-time" title="Rewind" aria-label="Rewind">|&lt;</button>
+            <button type="button" id="step-back" title="Step back" aria-label="Step back">&lt;</button>
+            <button type="button" id="play-toggle" title="Play or pause" aria-label="Play or pause">Play</button>
+            <button type="button" id="step-forward" title="Step forward" aria-label="Step forward">&gt;</button>
+            <button type="button" id="loop-toggle" class="active" title="Loop mode" aria-label="Loop mode">Loop</button>
+          </div>
+          <label class="timeline-label">Simulation Minute <span><strong id="forecast-value">000</strong> min</span><input id="forecast-hour" type="range" min="0" max="90" value="0" /></label>
+          <label>Evolution Rate <span><strong id="speed-value">Fastest stable</strong></span><input id="speed-input" type="range" min="1" max="5" value="4" /></label>
+          <div class="metric-row">
+            <span>Phase <strong id="phase-readout">Setup</strong></span>
+            <span>Stage <strong id="lifecycle-readout">Pre-initiation</strong></span>
+            <span>Rate <strong id="rate-readout">Idle</strong></span>
+          </div>
+        </div>
+        <span class="resize-handle" data-resize></span>
+      </article>
+
+      <article class="app-window" data-window style="right: 18px; top: 714px; width: 356px; height: 224px;">
+        <header class="window-titlebar">
+          <div>
+            <span class="window-kicker">STORM</span>
+            <h2>Lifecycle and Hazards</h2>
+          </div>
+          <div class="window-actions">
+            <button type="button" class="icon-button" data-collapse title="Collapse window" aria-label="Collapse window">-</button>
+          </div>
+        </header>
+        <div class="window-body hazard-panel">
+          <div class="hazard-score">
+            <span>TOR</span>
+            <meter id="tornado-meter" min="0" max="1" value="0.58"></meter>
+            <strong id="tornado-value">58%</strong>
+          </div>
+          <div class="hazard-score">
+            <span>MB</span>
+            <meter id="microburst-meter" min="0" max="1" value="0.34"></meter>
+            <strong id="microburst-value">34%</strong>
+          </div>
+          <div id="event-log" class="event-log">
+            <span>Setup environment loaded.</span>
+          </div>
+        </div>
+        <span class="resize-handle" data-resize></span>
+      </article>
+
+      <article class="app-window bottom-strip" data-window style="left: 414px; right: 392px; bottom: 18px; height: 220px;">
+        <header class="window-titlebar">
+          <div>
+            <span class="window-kicker">ANALYSIS</span>
+            <h2>Probe, Cross Section, and Sounding</h2>
+          </div>
+          <div class="window-actions">
+            <button type="button" class="icon-button" data-collapse title="Collapse window" aria-label="Collapse window">-</button>
+          </div>
+        </header>
+        <div class="window-body analysis-grid">
+          <div class="plot-card">
+            <h3>Cross Section</h3>
+            <div class="mini-plot cross-section" aria-hidden="true">
+              <span id="cross-section-marker"></span>
+            </div>
+          </div>
+          <div class="plot-card">
+            <h3>Live Sounding</h3>
+            <div class="mini-plot sounding" aria-hidden="true">
+              <span id="sounding-temp-line"></span>
+              <span id="sounding-dew-line"></span>
+            </div>
+          </div>
+          <div class="plot-card inspector-card">
+            <h3>Data Inspector</h3>
+            <dl id="sample-readout">
+              <div><dt>X</dt><dd id="sample-x">0.0 mi</dd></div>
+              <div><dt>Y</dt><dd id="sample-y">0.0 mi</dd></div>
+              <div><dt>Height</dt><dd id="sample-z">SFC</dd></div>
+              <div><dt>Temp</dt><dd id="sample-temp">27 C</dd></div>
+              <div><dt>Dewpoint</dt><dd id="sample-dew">21 C</dd></div>
+              <div><dt>Reflectivity</dt><dd id="sample-ref">0 dBZ</dd></div>
+              <div><dt>Wind Gust</dt><dd id="sample-gust">0 mph</dd></div>
+              <div><dt>Updraft</dt><dd id="sample-updraft">0 m/s</dd></div>
+              <div><dt>Vorticity</dt><dd id="sample-vort">0.00 s-1</dd></div>
+              <div><dt>Hazard</dt><dd id="sample-hazard">None</dd></div>
+            </dl>
+          </div>
+        </div>
+        <span class="resize-handle" data-resize></span>
+      </article>
+
+      <article class="app-window micro-panel" data-window style="left: 718px; top: 76px; width: 264px; height: 172px;">
+        <header class="window-titlebar">
+          <div>
+            <span class="window-kicker">MESH</span>
+            <h2>Simulation Box</h2>
+          </div>
+          <div class="window-actions">
+            <button type="button" class="icon-button" data-collapse title="Collapse window" aria-label="Collapse window">-</button>
+          </div>
+        </header>
+        <div class="window-body perf-grid">
+          <span>Width <strong>25 mi</strong></span>
+          <span>Depth <strong>25 mi</strong></span>
+          <span>Top <strong>10 mi</strong></span>
+          <span>Solver <strong id="solver-readout">Setup</strong></span>
+        </div>
+        <span class="resize-handle" data-resize></span>
+      </article>
+
+      <article class="app-window micro-panel" data-window style="left: 718px; top: 268px; width: 264px; height: 172px;">
+        <header class="window-titlebar">
+          <div>
+            <span class="window-kicker">PERF</span>
+            <h2>Performance Statistics</h2>
+          </div>
+          <div class="window-actions">
+            <button type="button" class="icon-button" data-collapse title="Collapse window" aria-label="Collapse window">-</button>
+          </div>
+        </header>
+        <div class="window-body perf-grid">
+          <span>FPS <strong id="fps-readout">--</strong></span>
+          <span>Frame <strong id="frame-readout">0.0 ms</strong></span>
+          <span>LOD <strong>Adaptive</strong></span>
+          <span>Stream <strong>Local</strong></span>
+        </div>
+        <span class="resize-handle" data-resize></span>
+      </article>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
